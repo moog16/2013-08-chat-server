@@ -8,20 +8,37 @@ var handleRequest = function(request, response) {
   var fs = require('fs');
 
   console.log("Serving request type " + request.method + " for url " + request.url);
-  console.log(request.headers);
-  var roomName = (request.url.split('/')).pop();
+  var roomName = request.url.split('/')[3];
 
 
   var statusCode = 200;
   var headers = defaultCorsHeaders;
-  // request.addListener("data", function(chunk){
-  // });
+  headers['Content-Type'] = "text/plain";
+  response.writeHead(statusCode, headers);
+
+  request.addListener("data", function(chunk){
+    // console.log(chunk.toString());
+
+    fs.readFile('./1/classes', function(err, data) {
+      var hardD = JSON.parse(data.toString());
+      var newMessageData = JSON.parse(chunk.toString());
+
+      if(hardD[roomName]) {
+        hardD[roomName].results.push(newMessageData);
+      } else {
+        console.log('its inside the newer part');
+        hardD[roomName] = {results : newMessageData};
+      }
+      hardD = JSON.stringify(hardD);
+      fs.writeFile('./1/classes', hardD, function(err) {
+        if(err) throw err;
+      });
+    });
+
+  });
 
   fs.readFile('./1/classes', function(err, data) {
-    headers['Content-Type'] = "text/plain";
-    response.writeHead(statusCode, headers);
     if(!err) {
-      // debugger;
       var hardD = JSON.parse(data.toString());
       response.end(JSON.stringify(hardD[roomName]));
     } else {
@@ -29,6 +46,7 @@ var handleRequest = function(request, response) {
     }
   });
 };
+
 
 var defaultCorsHeaders = {
   "access-control-allow-origin": "*",
