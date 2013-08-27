@@ -11,7 +11,8 @@ var handleRequest = function(request, response) {
   var urlParse = request.url.split('/');
   var roomName = urlParse.pop();
   var statusCode = 0;
-  if(urlParse[1] !== '1' || urlParse[2] !== 'classes'){
+
+  if(urlParse[1] !== '1' && urlParse[2] !== 'classes' && urlParse[3] === undefined){
     statusCode = 404;
   } else if(request.method === 'GET') {
     statusCode = 200;
@@ -36,11 +37,10 @@ var handleRequest = function(request, response) {
     response.end('');
   } else if(request.method === 'GET') {
     fs.readFile('./1/classes', function(err, data) {
-      // var statusCode = 200;
-      // response.writeHead(statusCode, headers);
       if(!err) {
         if(data.length === 0) {
-          response.end("[]");
+          console.log("in here");
+          response.end(JSON.stringify([]));
         } else {
           var hardD = JSON.parse(data.toString());
           response.end(JSON.stringify(sortByDesc(hardD[roomName]['results'])));

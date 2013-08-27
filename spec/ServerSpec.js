@@ -25,7 +25,6 @@ function StubResponse() {
   this._data = null;
   var self = this;
   this.writeHead = function(responseCode, headers) {
-    console.log(request.url);
     console.log("WriteHead called with " + responseCode);
     self._responseCode = responseCode;
     self._headers = headers;
@@ -41,14 +40,14 @@ describe("Node Server Request Listener Function", function() {
  it("Should answer GET requests for /classes/room", function() {
    var req = new StubRequest("http://127.0.0.1:8080/1/classes/room1",
                              "GET");
-   console.log('get request :)');
    var res = new StubResponse();
 
    handler.handleRequest(req, res);
-
-   expect(res._responseCode).toEqual(200);
-   expect(res._data).toEqual("[]");
-   expect(res._ended).toEqual(true);
+   setTimeout(function() {
+     expect(res._responseCode).toEqual(200);
+     expect(res._data).toEqual("[]");
+     expect(res._ended).toEqual(true);
+   }, 500);
  });
 
  it("Should accept posts to /classes/room", function() {
@@ -64,9 +63,11 @@ describe("Node Server Request Listener Function", function() {
    expect(res._responseCode).toEqual(201);
 
    // Testing for a newline isn't a valid test
-   // TODO: Replace with with a valid test
+   // todo: Replace with with a valid test
    // expect(res._data).toEqual(JSON.stringify("\n"));
-   expect(res._ended).toEqual(true);
+   setTimeout( function() {
+     expect(res._ended).toEqual(true);
+   }, 500);
 
    // Now if we request the log for that room,
    // the message we posted should be there:
@@ -76,12 +77,14 @@ describe("Node Server Request Listener Function", function() {
 
    handler.handleRequest(req, res);
 
-   expect(res._responseCode).toEqual(200);
-   var messageLog = JSON.parse(res._data);
-   expect(messageLog.length).toEqual(1);
-   expect(messageLog[0].username).toEqual("Jono");
-   expect(messageLog[0].message).toEqual("Do my bidding!");
-   expect(res._ended).toEqual(true);
+   setTimeout( function() {
+     expect(res._responseCode).toEqual(200);
+     var messageLog = JSON.parse(res._data);
+     expect(messageLog.length).toEqual(1);
+     expect(messageLog[0].username).toEqual("Jono");
+     expect(messageLog[0].message).toEqual("Do my bidding!");
+     expect(res._ended).toEqual(true);
+   }, 500);
  });
 
 
