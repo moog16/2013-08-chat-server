@@ -9,18 +9,21 @@ var handleRequest = function(request, response) {
 
   console.log("Serving request type " + request.method + " for url " + request.url);
   console.log(request.headers);
+  var roomName = (request.url.split('/')).pop();
+
 
   var statusCode = 200;
-  // var headers = defaultCorsHeaders;
+  var headers = defaultCorsHeaders;
   // request.addListener("data", function(chunk){
-    
   // });
 
-  fs.readFile(('.'+request.url), function(err, data) {
+  fs.readFile('./1/classes', function(err, data) {
     headers['Content-Type'] = "text/plain";
     response.writeHead(statusCode, headers);
     if(!err) {
-      response.end(data);
+      // debugger;
+      var hardD = JSON.parse(data.toString());
+      response.end(JSON.stringify(hardD[roomName]));
     } else {
       response.end(err);
     }
@@ -35,5 +38,3 @@ var defaultCorsHeaders = {
 };
 
 module.exports.handleRequest = handleRequest;
-
-theHardDrive:{room:{result: [{},{},{}]}, messages:{result: [{},{},{}]}};
