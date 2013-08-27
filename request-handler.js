@@ -18,22 +18,33 @@ var handleRequest = function(request, response) {
     response.writeHead(statusCode, headers);
 
     fs.readFile('./1/classes', function(err, data) {
-      var hardD = JSON.parse(data.toString());
-      var newMessageData = JSON.parse(chunk.toString());
-      var d = new Date();
-      newMessageData['createdAt'] = ISODateString(d);
-
-      if(hardD[roomName]) {
-        // console.log(roomName);
-        // console.log(hardD[roomName]);
-        hardD[roomName].results.push(newMessageData);
+      if(data.length > 0) {
+        var hardD = JSON.parse(data.toString());
+        var newMessageData = JSON.parse(chunk.toString());
+        var d = new Date();
+        newMessageData['createdAt'] = ISODateString(d);
+        console.log(roomName);
+        if(hardD[roomName]) {
+          // console.log(roomName);
+          // console.log(hardD[roomName]);
+          hardD[roomName].results.push(newMessageData);
+        } else {
+          hardD[roomName] = {results : [newMessageData]};
+        }
+        hardD = JSON.stringify(hardD);
+        fs.writeFile('./1/classes', hardD, function(err) {
+          if(err) throw err;
+        });
       } else {
-        hardD[roomName] = {results : [newMessageData]};
+        console.log(roomName);
+        chunk = chunk.toString();
+        var newMessage = {};
+        newMessage[roomName] = {results:[JSON.parse(chunk.toString())]};
+        // console.log(JSON.parse(chunk.toString()));
+        fs.writeFile('./1/classes', JSON.stringify(newMessage), function(err) {
+          if(err) throw err;
+        });
       }
-      hardD = JSON.stringify(hardD);
-      fs.writeFile('./1/classes', hardD, function(err) {
-        if(err) throw err;
-      });
     });
 
   });
