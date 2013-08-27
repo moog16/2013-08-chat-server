@@ -23,10 +23,7 @@ var handleRequest = function(request, response) {
         var newMessageData = JSON.parse(chunk.toString());
         var d = new Date();
         newMessageData['createdAt'] = ISODateString(d);
-        console.log(roomName);
         if(hardD[roomName]) {
-          // console.log(roomName);
-          // console.log(hardD[roomName]);
           hardD[roomName].results.push(newMessageData);
         } else {
           hardD[roomName] = {results : [newMessageData]};
@@ -36,33 +33,37 @@ var handleRequest = function(request, response) {
           if(err) throw err;
         });
       } else {
-        console.log(roomName);
         chunk = chunk.toString();
         var newMessage = {};
         newMessage[roomName] = {results:[JSON.parse(chunk.toString())]};
-        // console.log(JSON.parse(chunk.toString()));
         fs.writeFile('./1/classes', JSON.stringify(newMessage), function(err) {
-          if(err) throw err;
+          if(err){
+            throw err;
+          } else {
+            response.end('');
+          }
         });
       }
     });
 
   });
 
-  fs.readFile('./1/classes', function(err, data) {
-    var statusCode = 200;
-    response.writeHead(statusCode, headers);
-    if(!err) {
-      if(data.length === 0) {
-        response.end("[]");
+  if(request.method === 'GET') {
+    fs.readFile('./1/classes', function(err, data) {
+      var statusCode = 200;
+      response.writeHead(statusCode, headers);
+      if(!err) {
+        if(data.length === 0) {
+          response.end("[]");
+        } else {
+          var hardD = JSON.parse(data.toString());
+          response.end(JSON.stringify(sortByDesc(hardD[roomName]['results'])));
+        }
       } else {
-        var hardD = JSON.parse(data.toString());
-        response.end(JSON.stringify(sortByDesc(hardD[roomName]['results'])));
+        response.end(err);
       }
-    } else {
-      response.end(err);
-    }
-  });
+    });
+  }
 };
 
 
