@@ -24,8 +24,8 @@ var handleRequest = function(request, response) {
       newMessageData['createdAt'] = ISODateString(d);
 
       if(hardD[roomName]) {
-        console.log(roomName);
-        console.log(hardD[roomName]);
+        // console.log(roomName);
+        // console.log(hardD[roomName]);
         hardD[roomName].results.push(newMessageData);
       } else {
         hardD[roomName] = {results : [newMessageData]};
@@ -42,10 +42,10 @@ var handleRequest = function(request, response) {
     var statusCode = 200;
     response.writeHead(statusCode, headers);
     if(!err) {
-      var hardD = JSON.parse(data.toString());
-      if(hardD[roomName] === undefined) {
+      if(data.length === 0) {
         response.end("[]");
       } else {
+        var hardD = JSON.parse(data.toString());
         response.end(JSON.stringify(sortByDesc(hardD[roomName]['results'])));
       }
     } else {
