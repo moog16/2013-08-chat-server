@@ -5,5 +5,35 @@
  * node module documentation at http://nodejs.org/api/modules.html. */
 
 var handleRequest = function(request, response) {
+  var fs = require('fs');
 
+  console.log("Serving request type " + request.method + " for url " + request.url);
+  console.log(request.headers);
+
+  var statusCode = 200;
+  // var headers = defaultCorsHeaders;
+  // request.addListener("data", function(chunk){
+    
+  // });
+
+  fs.readFile(('.'+request.url), function(err, data) {
+    headers['Content-Type'] = "text/plain";
+    response.writeHead(statusCode, headers);
+    if(!err) {
+      response.end(data);
+    } else {
+      response.end(err);
+    }
+  });
 };
+
+var defaultCorsHeaders = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "access-control-allow-headers": "content-type, accept",
+  "access-control-max-age": 10 // Seconds.
+};
+
+module.exports.handleRequest = handleRequest;
+
+theHardDrive:{room:{result: [{},{},{}]}, messages:{result: [{},{},{}]}};
