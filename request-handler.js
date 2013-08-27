@@ -8,14 +8,26 @@ var handleRequest = function(request, response) {
   var fs = require('fs');
 
   console.log("Serving request type " + request.method + " for url " + request.url);
-  var roomName = (request.url.split('/')).pop();
+  var urlParse = request.url.split('/');
+  var roomName = urlParse.pop();
+  var statusCode;
+  if(urlParse[1] !== '1' || urlParse[2] !== 'classes'){
+    statusCode = 404;
+  } else if(request.method === 'GET') {
+    statusCode = 200;
+  } else if(request.method === 'POST') {
+    statusCode = 201;
+  }
 
   var headers = defaultCorsHeaders;
+  response.writeHead(statusCode, headers);
   headers['Content-Type'] = "text/plain";
 
+  if(statusCode === 404) {
+    response.end('Page is not Found.');
+  }
   request.addListener("data", function(chunk){
-    var statusCode = 201;
-    response.writeHead(statusCode, headers);
+    // var statusCode = 201;
 
     fs.readFile('./1/classes', function(err, data) {
       if(data.length > 0) {
@@ -50,8 +62,8 @@ var handleRequest = function(request, response) {
 
   if(request.method === 'GET') {
     fs.readFile('./1/classes', function(err, data) {
-      var statusCode = 200;
-      response.writeHead(statusCode, headers);
+      // var statusCode = 200;
+      // response.writeHead(statusCode, headers);
       if(!err) {
         if(data.length === 0) {
           response.end("[]");

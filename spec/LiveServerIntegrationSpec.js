@@ -29,7 +29,7 @@ describe("Live Node Chat Server", function() {
 
            });
  });
-/*
+
  it("Should 404 when asked for a nonexistent file", function(done) {
    request("http://127.0.0.1:8080/arglebargle",
            function(error, response, body) {
@@ -38,5 +38,5 @@ describe("Live Node Chat Server", function() {
            });
  });
 
-*/
+
 });
