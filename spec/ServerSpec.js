@@ -25,6 +25,7 @@ function StubResponse() {
   this._data = null;
   var self = this;
   this.writeHead = function(responseCode, headers) {
+    console.log(request.url);
     console.log("WriteHead called with " + responseCode);
     self._responseCode = responseCode;
     self._headers = headers;
@@ -40,6 +41,7 @@ describe("Node Server Request Listener Function", function() {
  it("Should answer GET requests for /classes/room", function() {
    var req = new StubRequest("http://127.0.0.1:8080/1/classes/room1",
                              "GET");
+   console.log('get request :)');
    var res = new StubResponse();
 
    handler.handleRequest(req, res);

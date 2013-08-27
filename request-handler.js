@@ -10,57 +10,31 @@ var handleRequest = function(request, response) {
   console.log("Serving request type " + request.method + " for url " + request.url);
   var urlParse = request.url.split('/');
   var roomName = urlParse.pop();
-  var statusCode;
+  var statusCode = 0;
   if(urlParse[1] !== '1' || urlParse[2] !== 'classes'){
     statusCode = 404;
   } else if(request.method === 'GET') {
     statusCode = 200;
   } else if(request.method === 'POST') {
     statusCode = 201;
+  } else if(request.method === 'OPTIONS') {
+    statusCode = 200;
   }
 
-  var headers = defaultCorsHeaders;
+  var headers =  {
+    "access-control-allow-origin": "*",
+    "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "access-control-allow-headers": "content-type, accept",
+    "access-control-max-age": 10,
+    'Content-Type': "text/plain"
+    };
   response.writeHead(statusCode, headers);
-  headers['Content-Type'] = "text/plain";
 
   if(statusCode === 404) {
     response.end('Page is not Found.');
-  }
-  request.addListener("data", function(chunk){
-    // var statusCode = 201;
-
-    fs.readFile('./1/classes', function(err, data) {
-      if(data.length > 0) {
-        var hardD = JSON.parse(data.toString());
-        var newMessageData = JSON.parse(chunk.toString());
-        var d = new Date();
-        newMessageData['createdAt'] = ISODateString(d);
-        if(hardD[roomName]) {
-          hardD[roomName].results.push(newMessageData);
-        } else {
-          hardD[roomName] = {results : [newMessageData]};
-        }
-        hardD = JSON.stringify(hardD);
-        fs.writeFile('./1/classes', hardD, function(err) {
-          if(err) throw err;
-        });
-      } else {
-        chunk = chunk.toString();
-        var newMessage = {};
-        newMessage[roomName] = {results:[JSON.parse(chunk.toString())]};
-        fs.writeFile('./1/classes', JSON.stringify(newMessage), function(err) {
-          if(err){
-            throw err;
-          } else {
-            response.end('');
-          }
-        });
-      }
-    });
-
-  });
-
-  if(request.method === 'GET') {
+  } else if(request.method === 'OPTIONS') {
+    response.end('');
+  } else if(request.method === 'GET') {
     fs.readFile('./1/classes', function(err, data) {
       // var statusCode = 200;
       // response.writeHead(statusCode, headers);
@@ -75,16 +49,44 @@ var handleRequest = function(request, response) {
         response.end(err);
       }
     });
+  } else if(request.method === 'POST') {
+    request.addListener("data", function(chunk){
+      // var statusCode = 201;
+
+      fs.readFile('./1/classes', function(err, data) {
+        if(data.length > 0) {
+          var hardD = JSON.parse(data.toString());
+          var newMessageData = JSON.parse(chunk.toString());
+          newMessageData['createdAt'] = ISODateString(new Date());
+
+          if(hardD[roomName]) {
+            hardD[roomName].results.push(newMessageData);
+          } else {
+            hardD[roomName] = {results : [newMessageData]};
+          }
+          hardD = JSON.stringify(hardD);
+          fs.writeFile('./1/classes', hardD, function(err) {
+            response.end('');
+            if(err) throw err;
+          });
+        } else {
+          chunk = chunk.toString();
+          var newMessage = {};
+          newMessage[roomName] = {results:[JSON.parse(chunk.toString())]};
+          fs.writeFile('./1/classes', JSON.stringify(newMessage), function(err) {
+            if(err){
+              throw err;
+            } else {
+              response.end('');
+            }
+          });
+        }
+      });
+
+    });
   }
 };
 
-
-var defaultCorsHeaders = {
-  "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "access-control-allow-headers": "content-type, accept",
-  "access-control-max-age": 10 // Seconds.
-};
 
 var ISODateString = function(d){
   var pad = function(n){
