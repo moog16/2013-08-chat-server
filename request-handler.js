@@ -8,26 +8,27 @@ var handleRequest = function(request, response) {
   var fs = require('fs');
 
   console.log("Serving request type " + request.method + " for url " + request.url);
-  var roomName = request.url.split('/')[3];
+  var roomName = (request.url.split('/')).pop();
 
-  var statusCode = 200;
   var headers = defaultCorsHeaders;
   headers['Content-Type'] = "text/plain";
-  response.writeHead(statusCode, headers);
 
   request.addListener("data", function(chunk){
+    var statusCode = 201;
+    response.writeHead(statusCode, headers);
 
     fs.readFile('./1/classes', function(err, data) {
       var hardD = JSON.parse(data.toString());
       var newMessageData = JSON.parse(chunk.toString());
       var d = new Date();
-      console.log(ISODateString(d));
       newMessageData['createdAt'] = ISODateString(d);
 
       if(hardD[roomName]) {
+        console.log(roomName);
+        console.log(hardD[roomName]);
         hardD[roomName].results.push(newMessageData);
       } else {
-        hardD[roomName] = {results : newMessageData};
+        hardD[roomName] = {results : [newMessageData]};
       }
       hardD = JSON.stringify(hardD);
       fs.writeFile('./1/classes', hardD, function(err) {
@@ -38,10 +39,15 @@ var handleRequest = function(request, response) {
   });
 
   fs.readFile('./1/classes', function(err, data) {
+    var statusCode = 200;
+    response.writeHead(statusCode, headers);
     if(!err) {
       var hardD = JSON.parse(data.toString());
-      // hardD = sortByDesc(hardD[roomName]['results']);
-      response.end(JSON.stringify(sortByDesc(hardD[roomName]['results'])));
+      if(hardD[roomName] === undefined) {
+        response.end("[]");
+      } else {
+        response.end(JSON.stringify(sortByDesc(hardD[roomName]['results'])));
+      }
     } else {
       response.end(err);
     }
