@@ -10,23 +10,23 @@ var handleRequest = function(request, response) {
   console.log("Serving request type " + request.method + " for url " + request.url);
   var roomName = request.url.split('/')[3];
 
-
   var statusCode = 200;
   var headers = defaultCorsHeaders;
   headers['Content-Type'] = "text/plain";
   response.writeHead(statusCode, headers);
 
   request.addListener("data", function(chunk){
-    // console.log(chunk.toString());
 
     fs.readFile('./1/classes', function(err, data) {
       var hardD = JSON.parse(data.toString());
       var newMessageData = JSON.parse(chunk.toString());
+      var d = new Date();
+      console.log(ISODateString(d));
+      newMessageData['createdAt'] = ISODateString(d);
 
       if(hardD[roomName]) {
         hardD[roomName].results.push(newMessageData);
       } else {
-        console.log('its inside the newer part');
         hardD[roomName] = {results : newMessageData};
       }
       hardD = JSON.stringify(hardD);
@@ -40,7 +40,8 @@ var handleRequest = function(request, response) {
   fs.readFile('./1/classes', function(err, data) {
     if(!err) {
       var hardD = JSON.parse(data.toString());
-      response.end(JSON.stringify(hardD[roomName]));
+      // hardD = sortByDesc(hardD[roomName]['results']);
+      response.end(JSON.stringify(sortByDesc(hardD[roomName]['results'])));
     } else {
       response.end(err);
     }
@@ -55,4 +56,26 @@ var defaultCorsHeaders = {
   "access-control-max-age": 10 // Seconds.
 };
 
+var ISODateString = function(d){
+  var pad = function(n){
+    return n<10 ? '0'+n : n;
+  };
+  return d.getUTCFullYear()+'-' + pad(d.getUTCMonth()+1)+'-'+ pad(d.getUTCDate())+'T'+ pad(d.getUTCHours())+':'+ pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds())+'Z';
+};
+
+var sortByDesc = function(array) {
+  var haveSwapped = false;
+  while(!haveSwapped) {
+    haveSwapped = true;
+    for(var i=0; i < array.length - 1; i++) {
+      if(array[i]['createdAt'] > array[i+1]['createdAt']) {
+        var temp = array[i];
+        array[i] = array[i+1];
+        array[i+1] = temp;
+        haveSwapped = false;
+      }
+    }
+  }
+  return array;
+};
 module.exports.handleRequest = handleRequest;
