@@ -11,8 +11,26 @@ var handleRequest = function(request, response) {
   var urlParse = request.url.split('/');
   var roomName = urlParse.pop();
   var statusCode = 0;
+  var headers =  {
+    "access-control-allow-origin": "*",
+    "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "access-control-allow-headers": "content-type, accept",
+    "access-control-max-age": 10,
+    'Content-Type': "text/plain"
+    };
 
-  if(urlParse[1] !== '1' && urlParse[2] !== 'classes' && urlParse[3] === undefined){
+  if(request.url === '/') {
+    headers['Content-Type'] = 'text/html';
+    response.writeHead(200, headers);
+    fs.readFile('../2013-08-chat-client/index.html', function(err, data) {
+      console.log(data.toString());
+      if(err) {
+        throw err;
+      } else {
+        response.end(data.toString());
+      }
+    });
+  } else if(urlParse[1] !== '1' && urlParse[2] !== 'classes' && urlParse[3] === undefined){
     statusCode = 404;
   } else if(request.method === 'GET') {
     statusCode = 200;
@@ -22,16 +40,11 @@ var handleRequest = function(request, response) {
     statusCode = 200;
   }
 
-  var headers =  {
-    "access-control-allow-origin": "*",
-    "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "access-control-allow-headers": "content-type, accept",
-    "access-control-max-age": 10,
-    'Content-Type': "text/plain"
-    };
   response.writeHead(statusCode, headers);
 
-  if(statusCode === 404) {
+  if(request.url === '/') {
+
+  } else if(statusCode === 404) {
     response.end('Page is not Found.');
   } else if(request.method === 'OPTIONS') {
     response.end('');
@@ -39,7 +52,6 @@ var handleRequest = function(request, response) {
     fs.readFile('./1/classes', function(err, data) {
       if(!err) {
         if(data.length === 0) {
-          console.log("in here");
           response.end(JSON.stringify([]));
         } else {
           var hardD = JSON.parse(data.toString());
@@ -51,8 +63,6 @@ var handleRequest = function(request, response) {
     });
   } else if(request.method === 'POST') {
     request.addListener("data", function(chunk){
-      // var statusCode = 201;
-
       fs.readFile('./1/classes', function(err, data) {
         if(data.length > 0) {
           var hardD = JSON.parse(data.toString());
@@ -74,7 +84,7 @@ var handleRequest = function(request, response) {
           var newMessage = {};
           newMessage[roomName] = {results:[JSON.parse(chunk.toString())]};
           fs.writeFile('./1/classes', JSON.stringify(newMessage), function(err) {
-            if(err){
+            if(err) {
               throw err;
             } else {
               response.end('');
