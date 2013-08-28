@@ -22,33 +22,15 @@ var handleRequest = function(request, response) {
   if(request.url === '/') {
     headers['Content-Type'] = 'text/html';
     response.writeHead(200, headers);
-    fs.readFile('../2013-08-chat-client/index.html', function(err, data) {
-      console.log(data.toString());
-      if(err) {
-        throw err;
-      } else {
-        response.end(data.toString());
-      }
-    });
-  } else if(urlParse[1] !== '1' && urlParse[2] !== 'classes' && urlParse[3] === undefined){
-    statusCode = 404;
-  } else if(request.method === 'GET') {
-    statusCode = 200;
-  } else if(request.method === 'POST') {
-    statusCode = 201;
-  } else if(request.method === 'OPTIONS') {
-    statusCode = 200;
-  }
-
-  response.writeHead(statusCode, headers);
-
-  if(request.url === '/') {
-
-  } else if(statusCode === 404) {
+    fs.readFile('../2013-08-chat-client/index.html', personalizedResponse);
+  } else if(urlParse[1] !== '1' && urlParse[2] !== 'classes' && urlParse[3] === undefined) {
+    response.writeHead(404, headers);
     response.end('Page is not Found.');
   } else if(request.method === 'OPTIONS') {
+    response.writeHead(200, headers);
     response.end('');
   } else if(request.method === 'GET') {
+    response.writeHead(200, headers);
     fs.readFile('./1/classes', function(err, data) {
       if(!err) {
         if(data.length === 0) {
@@ -62,11 +44,13 @@ var handleRequest = function(request, response) {
       }
     });
   } else if(request.method === 'POST') {
+    response.writeHead(201, headers);
     request.addListener("data", function(chunk){
       fs.readFile('./1/classes', function(err, data) {
+        var hardD = JSON.parse(data.toString());
+        var newMessageData = JSON.parse(chunk.toString());
+
         if(data.length > 0) {
-          var hardD = JSON.parse(data.toString());
-          var newMessageData = JSON.parse(chunk.toString());
           newMessageData['createdAt'] = ISODateString(new Date());
 
           if(hardD[roomName]) {
@@ -74,27 +58,26 @@ var handleRequest = function(request, response) {
           } else {
             hardD[roomName] = {results : [newMessageData]};
           }
-          hardD = JSON.stringify(hardD);
-          fs.writeFile('./1/classes', hardD, function(err) {
+          fs.writeFile('./1/classes', JSON.stringify(hardD), function(err) {
             response.end('');
             if(err) throw err;
           });
         } else {
-          chunk = chunk.toString();
           var newMessage = {};
-          newMessage[roomName] = {results:[JSON.parse(chunk.toString())]};
-          fs.writeFile('./1/classes', JSON.stringify(newMessage), function(err) {
-            if(err) {
-              throw err;
-            } else {
-              response.end('');
-            }
-          });
+          newMessage[roomName] = {results:[newMessageData]};
+          fs.writeFile('./1/classes', JSON.stringify(newMessage), personalizedResponse);
         }
       });
 
     });
   }
+  var personalizedResponse = function(err, data) {
+    if(err) {
+      throw err;
+    } else {
+      response.end(data.toString());
+    }
+  };
 };
 
 
